@@ -1,0 +1,7 @@
+
+/releases/*.zip
+data/**/*
+data/**
+!data/*/
+!data/**/*/
+!data/**/*/.gitkeep
