@@ -26,3 +26,7 @@ ConvertTo-SCModuleWebDeployPackage -Path $path  -Destination $destination -Disab
 ## Testing
 
 * Run the script `up.ps1`
+
+## Demo
+
+![Test-Sitecore-Packages-720](https://user-images.githubusercontent.com/933163/81630806-287b4480-93cc-11ea-9fd1-025dd24e9891.gif)
