@@ -1,0 +1,30 @@
+version: "2.4"
+
+services:
+  traefik:
+    volumes:
+      - ./docker/traefik:C:/etc/traefik
+  mssql:
+    mem_limit: 2GB
+    volumes:
+      - ${LOCAL_DATA_PATH}\mssql:c:\data
+      - ${LOCAL_RELEASE_PATH}:C:\releases:ro     
+  # Mount our Solr data folder
+  solr:
+    volumes:
+      - ${LOCAL_DATA_PATH}\solr:c:\data
+  cm:
+    image: ${REGISTRY}${COMPOSE_PROJECT_NAME}-xm1-cm:${VERSION:-latest}
+    build:
+      context: ./docker/build/cm
+      args:
+        BASE_IMAGE: ${SITECORE_DOCKER_REGISTRY}sitecore-xm1-cm:${SITECORE_VERSION}
+        TOOLING_IMAGE: ${SITECORE_TOOLS_REGISTRY}sitecore-docker-tools-assets:${TOOLS_VERSION}
+    volumes:
+      - ${LOCAL_DEPLOY_PATH}\:C:\deploy
+      - ${LOCAL_DATA_PATH}\cm:C:\inetpub\wwwroot\App_Data\logs
+      - ${LOCAL_RELEASE_PATH}:C:\releases:ro
+    environment:
+      SITECORE_DEVELOPMENT_PATCHES: CustomErrorsOff
+    entrypoint: powershell -Command "& C:/tools/entrypoints/iis/Development.ps1"
+  

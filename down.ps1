@@ -1,2 +1,2 @@
 docker-compose down
-.\Clean-Data.ps1
+.\docker\clean.ps1
