@@ -27,7 +27,7 @@ services:
         condition: service_healthy
   mssql:
     isolation: ${ISOLATION}
-    image: ${SITECORE_DOCKER_REGISTRY}nonproduction/mssql-developer:2017-${SITECORE_VERSION}
+    image: ${SITECORE_DOCKER_REGISTRY}nonproduction/mssql-developer:${MSSQL_VERSION}
     environment:
       SA_PASSWORD: ${SQL_SA_PASSWORD}
       ACCEPT_EULA: "Y"
@@ -44,6 +44,7 @@ services:
       SQL_SERVER: ${SQL_SERVER}
       SQL_ADMIN_LOGIN: ${SQL_SA_LOGIN}
       SQL_ADMIN_PASSWORD: ${SQL_SA_PASSWORD}
+      SQL_DATABASE_PREFIX: ${SQL_DATABASE_PREFIX}
       SITECORE_ADMIN_PASSWORD: ${SITECORE_ADMIN_PASSWORD}
       POST_DEPLOYMENT_WAIT_PERIOD: 300
     healthcheck:
@@ -55,7 +56,7 @@ services:
         condition: service_healthy
   solr:
     isolation: ${ISOLATION}
-    image: ${SITECORE_DOCKER_REGISTRY}nonproduction/solr:8.8.2-${SITECORE_VERSION}
+    image: ${SITECORE_DOCKER_REGISTRY}nonproduction/solr:${SOLR_VERSION}
     ports:
       - "8984:8983"
     volumes:
@@ -77,7 +78,7 @@ services:
         condition: service_healthy
   id:
     isolation: ${ISOLATION}
-    image: ${SITECORE_DOCKER_REGISTRY}sitecore-id6:${SITECORE_VERSION}
+    image: ${SITECORE_DOCKER_REGISTRY}sitecore-id7:${SITECORE_VERSION}
     environment:
       Sitecore_Sitecore__IdentityServer__SitecoreMemberShipOptions__ConnectionString: Data Source=${SQL_SERVER};Initial Catalog=Sitecore.Core;User ID=${SQL_SA_LOGIN};Password=${SQL_SA_PASSWORD}
       Sitecore_Sitecore__IdentityServer__AccountOptions__PasswordRecoveryUrl: https://${CM_HOST}/sitecore/login?rc=1
