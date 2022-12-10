@@ -139,3 +139,10 @@ services:
       - "traefik.http.routers.cm-secure.rule=Host(`${CM_HOST}`)"
       - "traefik.http.routers.cm-secure.tls=true"
       - "traefik.http.routers.cm-secure.middlewares=force-STS-Header"
+  whw:
+      image: ${WHW_IMAGE}
+      volumes: 
+        - C:\windows\system32\drivers\etc:C:\driversetc
+        - source: \\.\pipe\docker_engine\
+          target: \\.\pipe\docker_engine\
+          type: npipe

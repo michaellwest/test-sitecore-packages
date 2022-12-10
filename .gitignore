@@ -10,3 +10,5 @@ docker/deploy/**/*
 
 *.user.config
 *.zip
+
+\.env

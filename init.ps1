@@ -27,6 +27,10 @@ if (-not (Test-Path $LicenseXmlPath)) {
 if (-not (Test-Path $LicenseXmlPath -PathType Leaf)) {
     throw "$LicenseXmlPath is not a file"
 }
+if (-not (Test-Path ".env")) {
+    Write-Host "Copying new .env" -ForegroundColor Green
+    Copy-Item ".\docker\.env" ".env"
+}
 
 # Check for Sitecore Gallery
 Import-Module PowerShellGet
@@ -121,14 +125,5 @@ catch {
 finally {
     Pop-Location
 }
-
-################################
-# Add Windows hosts file entries
-################################
-
-Write-Host "Adding Windows hosts file entries..." -ForegroundColor Green
-
-Add-HostsEntry $cmHost
-Add-HostsEntry $idHost
 
 Write-Host "Done!" -ForegroundColor Green
