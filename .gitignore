@@ -1,14 +1,4 @@
-﻿data/**/*
-data/**
-!data/*/
-!data/**/*/
-!data/**/*/.gitkeep
-deploy/**/*
-!deploy/**/*/.gitkeep
-docker/deploy/**/*
-!docker/deploy/**/*/.gitkeep
-
-*.user.config
+﻿*.user.config
 *.zip
 
 \.env

@@ -6,13 +6,20 @@ New-Item -Path "C:\temp\packages\" -ItemType Directory
 New-Item -Path "C:\temp\extract\" -ItemType Directory
 
 Write-Host "- Copying packages from release directory"
-Copy-Item -Path "C:\releases\*.scwdp.zip" -Destination "C:\temp\packages\"
+Copy-Item -Path "C:\releases\*.zip" -Destination "C:\temp\packages\"
 $archives = Get-ChildItem -Path "C:\temp\packages\*.zip"
 
 foreach($archive in $archives) {
     Get-ChildItem -Path "C:\temp\extract\*" -Recurse | Remove-Item -Recurse -Force
+
     Write-Host " - Extracting archive contents for $($archive.Name)"
-    $archive | Expand-Archive -DestinationPath "C:\temp\extract"
+    if($archive.Extension -eq ".scwdp.zip") {
+        $archive | Expand-Archive -DestinationPath "C:\temp\extract"
+    } elseif($archive.Extension -eq ".zip") {
+        $archive | Expand-Archive -DestinationPath "C:\temp\extract\Content\Website\"
+    } else{
+        Write-Host "- Skipping extraction as contents not expected"
+    }
     
     Write-Host " - Copying files to the website"
     Copy-Item -Path "C:\temp\extract\Content\Website\*" -Destination "C:\inetpub\wwwroot" -Recurse -Force
