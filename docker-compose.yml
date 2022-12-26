@@ -94,6 +94,10 @@ services:
     depends_on:
       mssql-init:
         condition: service_healthy
+    networks:
+      default:
+        aliases:
+          - ${ID_HOST}
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.id-secure.entrypoints=websecure"
@@ -131,6 +135,10 @@ services:
     healthcheck:
       test: ["CMD", "powershell", "-command", "C:/Healthchecks/Healthcheck.ps1"]
       timeout: 300s
+    networks:
+      default:
+        aliases:
+          - ${CM_HOST}
     labels:
       - "traefik.enable=true"
       - "traefik.http.middlewares.force-STS-Header.headers.forceSTSHeader=true"
