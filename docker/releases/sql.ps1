@@ -2,8 +2,8 @@
 if(Test-Path -Path "C:\temp") {
     Remove-Item -Path "C:\temp" -Recurse -Force
 }
-New-Item -Path "C:\temp\packages\" -ItemType Directory
-New-Item -Path "C:\temp\extract\" -ItemType Directory
+New-Item -Path "C:\temp\packages\" -ItemType Directory > $null
+New-Item -Path "C:\temp\extract\" -ItemType Directory > $null
 
 Write-Host "- Copying packages from release directory"
 Copy-Item -Path "C:\releases\*.scwdp.zip" -Destination "C:\temp\packages\"
