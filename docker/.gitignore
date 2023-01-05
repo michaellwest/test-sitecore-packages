@@ -16,3 +16,9 @@
 !/traefik/certs/.gitkeep
 
 /releases/sat/*
+
+*.crt
+*.cer
+*.key
+*.pfx
+*.exe

@@ -1,3 +1,5 @@
+version: "3.9"
+
 services:
   traefik:
     isolation: ${TRAEFIK_ISOLATION}
@@ -19,7 +21,7 @@ services:
       - source: \\.\pipe\docker_engine\
         target: \\.\pipe\docker_engine\
         type: npipe
-      - ./traefik:C:/etc/traefik
+      - ./docker/traefik:C:/etc/traefik
     depends_on:
       id:
         condition: service_healthy
@@ -34,9 +36,7 @@ services:
     ports:
       - "14330:1433"
     volumes:
-      - type: bind
-        source: .\mssql-data
-        target: c:\data
+      - ${LOCAL_DATA_PATH}\mssql:c:\data
   mssql-init:
     isolation: ${ISOLATION}
     image: ${SITECORE_DOCKER_REGISTRY}sitecore-xm1-mssql-init:${SITECORE_VERSION}
@@ -60,9 +60,7 @@ services:
     ports:
       - "8984:8983"
     volumes:
-      - type: bind
-        source: .\solr-data
-        target: c:\data
+      - ${LOCAL_DATA_PATH}\solr:c:\data
     environment:
       SOLR_MODE: solrcloud
     healthcheck:
@@ -87,7 +85,8 @@ services:
       Sitecore_Sitecore__IdentityServer__CertificateRawData: ${SITECORE_ID_CERTIFICATE}
       Sitecore_Sitecore__IdentityServer__PublicOrigin: https://${ID_HOST}
       Sitecore_Sitecore__IdentityServer__CertificateRawDataPassword: ${SITECORE_ID_CERTIFICATE_PASSWORD}
-      Sitecore_License: ${SITECORE_LICENSE}
+    volumes:
+      - ${SITECORE_LICENSE_PATH}:C:/Identity/sitecoreruntime:ro
     healthcheck:
       test: ["CMD", "pwsh", "-command", "C:/Healthchecks/Healthcheck.ps1"]
       timeout: 300s
@@ -125,13 +124,15 @@ services:
       Sitecore_AppSettings_Telerik.AsyncUpload.ConfigurationEncryptionKey: ${TELERIK_ENCRYPTION_KEY}
       Sitecore_AppSettings_Telerik.Upload.ConfigurationHashKey: ${TELERIK_ENCRYPTION_KEY}
       Sitecore_AppSettings_Telerik.Web.UI.DialogParametersEncryptionKey: ${TELERIK_ENCRYPTION_KEY}
-      Sitecore_License: ${SITECORE_LICENSE}
+      Sitecore_License_Location: ${SITECORE_LICENSE_LOCATION}
       Sitecore_Identity_Server_Authority: https://${ID_HOST}
       Sitecore_Identity_Server_InternalAuthority: http://id
       Sitecore_Identity_Server_CallbackAuthority: https://${CM_HOST}
       Sitecore_Identity_Server_Require_Https: "false"
       SOLR_CORE_PREFIX_NAME: ${SOLR_CORE_PREFIX_NAME}
       MEDIA_REQUEST_PROTECTION_SHARED_SECRET: ${MEDIA_REQUEST_PROTECTION_SHARED_SECRET}
+    volumes:
+      - ${SITECORE_LICENSE_PATH}:${SITECORE_LICENSE_PATH}:ro
     healthcheck:
       test: ["CMD", "powershell", "-command", "C:/Healthchecks/Healthcheck.ps1"]
       timeout: 300s
@@ -148,11 +149,11 @@ services:
       - "traefik.http.routers.cm-secure.tls=true"
       - "traefik.http.routers.cm-secure.middlewares=force-STS-Header"
   whw:
-      image: ${WHW_IMAGE}
-      volumes: 
-        - C:\windows\system32\drivers\etc:C:\driversetc
-        - source: \\.\pipe\docker_engine\
-          target: \\.\pipe\docker_engine\
-          type: npipe
-      environment:
-        TERMINATION_MAP: id,cm,solr:traefik
+    image: ${WHW_IMAGE}
+    volumes: 
+      - C:\windows\system32\drivers\etc:C:\driversetc
+      - source: \\.\pipe\docker_engine\
+        target: \\.\pipe\docker_engine\
+        type: npipe
+    environment:
+      TERMINATION_MAP: id,cm,solr:traefik

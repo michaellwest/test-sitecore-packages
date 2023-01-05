@@ -30,13 +30,14 @@ $packages = Get-ChildItem -Path $releases -Filter "*.zip" |
 
 $destination = "$($releases)\"
 
+Add-Type -AssemblyName "System.IO.Compression"
+Add-Type -AssemblyName "System.IO.Compression.FileSystem"
 function Test-ValidModulePackage {
     param(
         [string]$Path
     )
 
     $isModulePackage = $false
-    Add-Type -AssemblyName "System.IO.Compression.FileSystem"
     $zip = [System.IO.Compression.ZipFile]::Open($Path, [System.IO.Compression.ZipArchiveMode]::Read)
     $packageZipEntry = $zip.Entries | Where-Object { $_.Name -eq "package.zip" }
 
@@ -84,6 +85,4 @@ if (-not $status.status -eq "enabled") {
     Write-Error "Timeout waiting for Sitecore CM to become available via Traefik proxy. Check CM container logs."
 }
 
-Write-Host "Installing packaged releases to containers..." -ForegroundColor Green
-docker exec --user ContainerAdministrator test-mssql-1 powershell C:\releases\sql.ps1
-docker exec --user ContainerAdministrator test-cm-1 powershell C:\releases\cm.ps1
+& (Join-Path -Path $PSScriptRoot -ChildPath "deploy.ps1")

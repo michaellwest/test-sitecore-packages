@@ -1,9 +1,8 @@
 [CmdletBinding()]
 Param (
-    [Parameter(Mandatory = $true)]
+    [ValidateScript({return ![string]::IsNullOrEmpty($_)})]
     [string]
-    [ValidateNotNullOrEmpty()]
-    $LicenseXmlPath,
+    $LicenseXmlPath = "C:\License\license.xml",
 
     [string]
     $HostName = "dev.local",
@@ -79,10 +78,10 @@ if([string]::IsNullOrEmpty($idHost)) {
 }
 
 # TELERIK_ENCRYPTION_KEY = random 64-128 chars
-Set-EnvFileVariable "TELERIK_ENCRYPTION_KEY" -Value (Get-SitecoreRandomString 128)
+Set-EnvFileVariable "TELERIK_ENCRYPTION_KEY" -Value (Get-SitecoreRandomString 128 -DisallowSpecial)
 
 # MEDIA_REQUEST_PROTECTION_SHARED_SECRET
-Set-EnvFileVariable "MEDIA_REQUEST_PROTECTION_SHARED_SECRET" -Value (Get-SitecoreRandomString 64)
+Set-EnvFileVariable "MEDIA_REQUEST_PROTECTION_SHARED_SECRET" -Value (Get-SitecoreRandomString 64 -DisallowSpecial)
 
 # SITECORE_IDSECRET = random 64 chars
 Set-EnvFileVariable "SITECORE_IDSECRET" -Value (Get-SitecoreRandomString 64 -DisallowSpecial)
@@ -94,8 +93,12 @@ Set-EnvFileVariable "SITECORE_ID_CERTIFICATE" -Value (Get-SitecoreCertificateAsB
 # SITECORE_ID_CERTIFICATE_PASSWORD
 Set-EnvFileVariable "SITECORE_ID_CERTIFICATE_PASSWORD" -Value $idCertPassword
 
-# SITECORE_LICENSE
-Set-EnvFileVariable "SITECORE_LICENSE" -Value (ConvertTo-CompressedBase64String -Path $LicenseXmlPath)
+# SITECORE_LICENSE_LOCATION and SITECORE_LICENSE_PATH
+$licensePath = Get-EnvFileVariable -Variable "SITECORE_LICENSE_LOCATION" -Path $envPath
+if([string]::IsNullOrEmpty($licensePath)) {
+    Set-EnvFileVariable "SITECORE_LICENSE_LOCATION" -Value $LicenseXmlPath
+    Set-EnvFileVariable "SITECORE_LICENSE_PATH" -Value ([System.IO.Path]::GetDirectoryName($LicenseXmlPath))
+}
 
 ##################################
 # Configure TLS/HTTPS certificates
@@ -103,21 +106,25 @@ Set-EnvFileVariable "SITECORE_LICENSE" -Value (ConvertTo-CompressedBase64String 
 
 Push-Location docker\traefik\certs
 try {
-    $mkcert = ".\mkcert.exe"
-    if ($null -ne (Get-Command mkcert.exe -ErrorAction SilentlyContinue)) {
-        # mkcert installed in PATH
-        $mkcert = "mkcert"
-    } elseif (-not (Test-Path $mkcert)) {
-        Write-Host "Downloading and installing mkcert certificate tool..." -ForegroundColor Green 
-        Invoke-WebRequest "https://github.com/FiloSottile/mkcert/releases/download/v1.4.3/mkcert-v1.4.3-windows-amd64.exe" -UseBasicParsing -OutFile mkcert.exe
-        if ((Get-FileHash mkcert.exe).Hash -ne "9DC25F7D1AE0BE93DB81AA42F3ABFD62D13725DFD48969C9FE94B6AF57E5573C") {
-            Remove-Item mkcert.exe -Force
-            throw "Invalid mkcert.exe file"
+    $certz = Join-Path -Path (Get-Location) -ChildPath "certz.exe"
+    if ($null -ne (Get-Command certz.exe -ErrorAction SilentlyContinue)) {
+        # certz installed in PATH
+        $certz = "certz"
+    } elseif (-not (Test-Path $certz)) {
+        Write-Host "Downloading and installing certz certificate tool..." -ForegroundColor Green
+        $url = "https://github.com/michaellwest/certz/releases/download/0.2/certz-0.2-win64.exe"
+        $webClient = New-Object System.Net.WebClient
+        $webClient.Downloadfile($url, $certz)
+        
+        $currentHash = Get-FileHash -Path $certz -Algorithm SHA256 | Select-Object -Expand Hash
+        if ($currentHash -ne "D4625A4B55709DB1854DA8E1A2B93A3DF25C6F4E8FB5C0424A905029BB1FA2B6") {
+            Remove-Item $certz -Force
+            throw "Invalid certz.exe file"
         }
     }
     Write-Host "Generating Traefik TLS certificate..." -ForegroundColor Green
-    & $mkcert -install
-    & $mkcert -key-file key.pem -cert-file cert.pem "*.$($HostName)"
+    & $certz create --f devcert.pfx --san "*.$($HostName)" --p changeit --c devcert.cer --k devcert.key --days 1825
+    & $certz install --f devcert.pfx --p changeit --sl localmachine --sn root
 }
 catch {
     Write-Host "An error occurred while attempting to generate TLS certificate: $_" -ForegroundColor Red
