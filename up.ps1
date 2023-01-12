@@ -1,3 +1,12 @@
+[CmdletBinding()]
+param(
+    [switch]$Build,
+    [switch]$IncludeSps,
+    [switch]$IncludeSpe,
+    [switch]$IncludeSxa,
+    [switch]$IncludePackages
+)
+
 $releases = Join-Path -Path $PSScriptRoot -ChildPath "docker\releases"
 
 $sat = Join-Path -Path $releases -ChildPath "sat"
@@ -55,7 +64,12 @@ foreach($package in $packages) {
     }
 
     Write-Host "Converting $([System.IO.Path]::GetFileNameWithoutExtension($package))"
-    $wdpPath = ConvertTo-SCModuleWebDeployPackage -Path $package  -Destination $destination -DisableDacPacOptions '*' -Force
+    try {
+        $wdpPath = ConvertTo-SCModuleWebDeployPackage -Path $package  -Destination $destination -DisableDacPacOptions * -Force
+    } catch {
+        $Error[0]
+        exit
+    }
     
     Write-Host ""
 }
@@ -65,8 +79,33 @@ if (-not (docker ps)) {
     break
 }
 
+
+$composeArgs = @("compose", "-f", ".\docker-compose.yml", "-f", ".\docker-compose.override.yml")
+
+if($IncludeSps) {
+    $composeArgs += "-f"
+    $composeArgs += ".\docker-compose.sps.yml"
+}
+
+if($IncludeSpe -or $IncludeSxa) {
+    $composeArgs += "-f"
+    $composeArgs += ".\docker-compose.spe.yml"
+}
+
+if($IncludeSxa) {
+    $composeArgs += "-f"
+    $composeArgs += ".\docker-compose.sxa.yml"
+}
+
+if($Build) {
+    Write-Host "Build Sitecore images..." -ForegroundColor Green
+    $parameters = $PSBoundParameters
+    $parameters.Remove("Build") > $null
+    & (Join-Path -Path $PSScriptRoot -ChildPath "build.ps1") @parameters
+}
+
 Write-Host "Starting Sitecore environment..." -ForegroundColor Green
-docker compose up -d
+docker $composeArgs up -d
 
 Write-Host "Waiting for CM to become available..." -ForegroundColor Green
 $startTime = Get-Date
@@ -85,4 +124,8 @@ if (-not $status.status -eq "enabled") {
     Write-Error "Timeout waiting for Sitecore CM to become available via Traefik proxy. Check CM container logs."
 }
 
-& (Join-Path -Path $PSScriptRoot -ChildPath "deploy.ps1")
+if($IncludePackages) {
+    & (Join-Path -Path $PSScriptRoot -ChildPath "deploy.ps1")
+}
+
+Write-Host "Good luck!" -ForegroundColor Green

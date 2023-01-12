@@ -1,0 +1,9 @@
+services:
+  solr-init:
+    build:
+      args:
+        SXA_IMAGE: ${SITECORE_MODULE_REGISTRY}sitecore-sxa-xm1-assets:${SXA_VERSION}
+  cm:
+    build:
+      args:
+        SXA_IMAGE: ${SITECORE_MODULE_REGISTRY}sitecore-sxa-xm1-assets:${SXA_VERSION}

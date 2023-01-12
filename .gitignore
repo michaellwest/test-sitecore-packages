@@ -2,3 +2,6 @@
 *.zip
 
 \.env
+\.sitecore/user.json
+\.sitecore/package-cache
+\.vscode

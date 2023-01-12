@@ -1,0 +1,9 @@
+services:
+  mssql-init:
+    build:
+      args:
+        SPE_IMAGE: ${SITECORE_MODULE_REGISTRY}sitecore-spe-assets:${SPE_VERSION}
+  cm:
+    build:
+      args:
+        SPE_IMAGE: ${SITECORE_MODULE_REGISTRY}sitecore-spe-assets:${SPE_VERSION}
