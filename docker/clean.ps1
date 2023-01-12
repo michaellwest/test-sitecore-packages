@@ -10,8 +10,9 @@ Get-ChildItem -Path (Join-Path $PSScriptRoot "\data") -Directory | ForEach-Objec
 
 # Clean deploy folders
 Write-Host "- Cleaning deploy folders"
-Get-ChildItem -Path (Join-Path $PSScriptRoot "\deploy") -Directory | ForEach-Object {
-    $deployPath = $_.FullName
+Get-Item -Path (Join-Path $PSScriptRoot "\deploy\*") -Exclude ".gitkeep" | Remove-Item -Force -Recurse
 
-    Get-ChildItem -Path $deployPath -Exclude ".gitkeep" -Recurse | Remove-Item -Force -Recurse
-}
+# Clean build folders
+Write-Host "- Cleaning build folders"
+Get-Item -Path (Join-Path $PSScriptRoot "\build\cm\content\*") -Exclude ".gitkeep" | Remove-Item -Force -Recurse
+Get-Item -Path (Join-Path $PSScriptRoot "\build\mssql-init\db\*") -Exclude ".gitkeep" | Remove-Item -Force -Recurse

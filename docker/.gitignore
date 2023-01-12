@@ -7,10 +7,17 @@
 /data/solr/*
 !/data/solr/.gitkeep
 
-/deploy/website/*
-!/deploy/website/.gitkeep
-/deploy/xconnect/*
-!/deploy/xconnect/.gitkeep
+/deploy/*
+!/deploy/.gitkeep
+
+/build/solr-init/**/*
+!/build/solr-init/**/.gitkeep
+/build/mssql-init/**/*
+!/build/mssql-init/**/.gitkeep
+/build/cm/**/*
+!/build/cm/**/.gitkeep
+/build/releases/**/*
+!/build/releases/**/.gitkeep
 
 /traefik/certs/*
 !/traefik/certs/.gitkeep
