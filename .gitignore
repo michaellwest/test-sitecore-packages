@@ -5,3 +5,4 @@
 \.sitecore/user.json
 \.sitecore/package-cache
 \.vscode
+modules/serialization

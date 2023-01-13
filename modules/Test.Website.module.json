@@ -1,0 +1,15 @@
+{
+    "namespace": "Test.Website",
+    "description": "Content for local development only",
+    "tags": [
+        "content"
+    ],
+    "items": {
+        "includes": [
+            {
+                "name": "Content",
+                "path": "/sitecore/content/Home"
+            }
+        ]
+    }
+}

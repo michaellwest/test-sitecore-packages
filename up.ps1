@@ -2,8 +2,8 @@
     .SYNOPSIS
         Spins up the containers.
 
-    .PARAMETER Build
-        Specifies that the images should be built prior to starting up.
+    .PARAMETER SkipBuild
+        Specifies that the images should not be built prior to starting up.
 
     .PARAMETER IncludeSps
         Species that the Sitecore Publishing Service should be included.
@@ -23,11 +23,12 @@
 
 [CmdletBinding()]
 param(
-    [switch]$Build,
     [switch]$IncludeSps,
     [switch]$IncludeSpe,
     [switch]$IncludeSxa,
-    [switch]$IncludePackages
+    [switch]$IncludePackages,
+    [switch]$SkipBuild,
+    [switch]$SkipIndexing
 )
 
 $releases = Join-Path -Path $PSScriptRoot -ChildPath "docker\releases"
@@ -120,11 +121,15 @@ if($IncludeSxa) {
     $composeArgs += ".\docker-compose.sxa.yml"
 }
 
-if($Build) {
+if(-not $SkipBuild) {
     Write-Host "Build Sitecore images..." -ForegroundColor Green
     $parameters = $PSBoundParameters
     $parameters.Remove("Build") > $null
     & (Join-Path -Path $PSScriptRoot -ChildPath "build.ps1") @parameters
+
+    if ($LASTEXITCODE -ne 0) {
+        Write-Error "Container build failed, see errors above."
+    }
 }
 
 Write-Host "Starting Sitecore environment..." -ForegroundColor Green
@@ -151,4 +156,41 @@ if($IncludePackages) {
     & (Join-Path -Path $PSScriptRoot -ChildPath "deploy.ps1")
 }
 
+Write-Host "Restoring Sitecore CLI..." -ForegroundColor Green
+dotnet tool restore
+Write-Host "Installing Sitecore CLI Plugins..."
+dotnet sitecore --help | Out-Null
+if ($LASTEXITCODE -ne 0) {
+    Write-Error "Unexpected error installing Sitecore CLI Plugins"
+}
+
+
+Import-Module SitecoreDockerTools 3>$null
+$envPath = Join-Path -Path $PSScriptRoot -ChildPath ".env"
+$cmHost = Get-EnvFileVariable -Variable "CM_HOST" -Path $envPath
+$idHost = Get-EnvFileVariable -Variable "ID_HOST" -Path $envPath
+
+Write-Host "Logging into Sitecore..." -ForegroundColor Green
+dotnet sitecore login --cm https://$cmHost --allow-write true --auth $idHost
+
+if ($LASTEXITCODE -ne 0) {
+    Write-Error "Unable to log into Sitecore, did the Sitecore environment start correctly? See logs above."
+}
+
+if (-not $SkipIndexing) {
+    # Populate Solr managed schemas to avoid errors during item deploy
+    Write-Host "Populating Solr managed schema..." -ForegroundColor Green
+    dotnet sitecore index schema-populate
+    if ($LASTEXITCODE -ne 0) {
+        Write-Error "Populating Solr managed schema failed, see errors above."
+    }
+
+    # Rebuild indexes
+    Write-Host "Rebuilding indexes ..." -ForegroundColor Green
+    dotnet sitecore index rebuild
+}
+
 Write-Host "Good luck!" -ForegroundColor Green
+
+Write-Host "Opening site..." -ForegroundColor Green
+Start-Process https://$cmHost

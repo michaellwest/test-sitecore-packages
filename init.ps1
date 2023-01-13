@@ -54,7 +54,7 @@ if (-not (Get-InstalledModule -Name SitecoreDockerTools -RequiredVersion $docker
     Install-Module SitecoreDockerTools -RequiredVersion $dockerToolsVersion -Scope CurrentUser -Repository $SitecoreGallery.Name
 }
 Write-Host "Importing SitecoreDockerTools..." -ForegroundColor Green
-Import-Module SitecoreDockerTools -RequiredVersion $dockerToolsVersion
+Import-Module SitecoreDockerTools -RequiredVersion $dockerToolsVersion 3>$null
 Write-SitecoreDockerWelcome
 
 ###############################
