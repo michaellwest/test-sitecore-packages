@@ -4,5 +4,5 @@ param(
 docker compose down --remove-orphans
 
 if($Cleanup) {
-    .\docker\clean.ps1
+    .\clean.ps1
 }

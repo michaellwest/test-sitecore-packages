@@ -1,3 +1,10 @@
+<#
+    .SYNOPSIS
+        Performs the initial setup procedures required for the containers.
+        
+    .PARAMETER LicenseXmlPath
+        Specifies the fully-qualified path to the Sitecore license xml file.
+#>
 [CmdletBinding()]
 Param (
     [ValidateScript({return ![string]::IsNullOrEmpty($_)})]
