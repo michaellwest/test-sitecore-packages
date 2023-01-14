@@ -1,6 +1,5 @@
 [CmdletBinding()]
 param(
-    [string[]]$Services,
     [switch]$IncludeSps,
     [switch]$IncludeSpe,
     [switch]$IncludeSxa,
@@ -51,7 +50,15 @@ if($IncludePackages) {
     }
 }
 
-$composeArgs = @("compose", "-f", ".\docker-compose.yml", "-f", ".\docker-compose.override.yml")
+$composeArgs = @("compose", "-f", ".\docker-compose.yml")
+
+if(Test-Path -Path (Join-Path -Path $PSScriptRoot -ChildPath "docker-compose.override.yml")) {
+    $composeArgs += "-f"
+    $composeArgs += ".\docker-compose.override.yml"
+}
+
+$composeArgs += "-f"
+$composeArgs += ".\docker-compose.build.yml"
 
 if($IncludeSps) {
     $composeArgs += "-f"
@@ -68,4 +75,5 @@ if($IncludeSxa) {
     $composeArgs += ".\docker-compose.sxa.yml"
 }
 
-docker $composeArgs build $Services
+Write-Host Building
+docker $composeArgs build

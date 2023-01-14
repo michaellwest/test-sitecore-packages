@@ -37,6 +37,7 @@ services:
       - "14330:1433"
     volumes:
       - ${LOCAL_DATA_PATH}\mssql:c:\data
+      - ${LOCAL_RELEASE_PATH}:C:\releases:ro
   mssql-init:
     isolation: ${ISOLATION}
     image: ${SITECORE_DOCKER_REGISTRY}sitecore-xm1-mssql-init:${SITECORE_VERSION}
@@ -133,6 +134,9 @@ services:
       MEDIA_REQUEST_PROTECTION_SHARED_SECRET: ${MEDIA_REQUEST_PROTECTION_SHARED_SECRET}
     volumes:
       - ${SITECORE_LICENSE_PATH}:${SITECORE_LICENSE_PATH}:ro
+      - ${LOCAL_DEPLOY_PATH}\:C:\deploy
+      - ${LOCAL_DATA_PATH}\cm:C:\inetpub\wwwroot\App_Data\logs
+      - ${LOCAL_RELEASE_PATH}:C:\releases:ro
     healthcheck:
       test: ["CMD", "powershell", "-command", "C:/Healthchecks/Healthcheck.ps1"]
       timeout: 300s

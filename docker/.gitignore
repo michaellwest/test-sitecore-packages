@@ -12,10 +12,13 @@
 
 /build/solr-init/**/*
 !/build/solr-init/**/.gitkeep
+!/build/solr-init/**/*.md
 /build/mssql-init/**/*
 !/build/mssql-init/**/.gitkeep
+!/build/mssql-init/**/*.md
 /build/cm/**/*
 !/build/cm/**/.gitkeep
+!/build/cm/**/*.md
 /build/releases/**/*
 !/build/releases/**/.gitkeep
 

@@ -6,3 +6,4 @@
 \.sitecore/package-cache
 \.vscode
 modules/serialization
+docker-compose.override.yml

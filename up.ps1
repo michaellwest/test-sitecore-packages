@@ -83,15 +83,23 @@ function Test-ValidModulePackage {
 }
 
 foreach($package in $packages) {
-    if(-not (Test-ValidModulePackage -Path $package)) {
+    if (-not (Test-ValidModulePackage -Path $package)) {
         continue
     }
 
-    Write-Host "Converting $([System.IO.Path]::GetFileNameWithoutExtension($package))"
+    $packageName = [System.IO.Path]::GetFileNameWithoutExtension($package)    
+    Write-Host "Converting $($packageName)"
     try {
-        $wdpPath = ConvertTo-SCModuleWebDeployPackage -Path $package  -Destination $destination -DisableDacPacOptions * -Force
+        $convertedFilename = Join-Path -Path $destination -ChildPath "$($packageName).scwdp.zip"
+        if (Test-Path -Path $convertedFilename) {
+            Remove-Item -Path $convertedFilename
+        }
+        $wdpPath = ConvertTo-SCModuleWebDeployPackage -Path $package  -Destination $destination #-DisableDacPacOptions * -Force
     } catch {
-        $Error[0]
+        $PSItem.Exception
+        Write-Warning "Verify that Microsoft® SQL Server® Data-Tier Application Framework is installed."    
+        Write-Host "Tip: Use Process Monitor to identity which libraries are missing."
+        Write-Host "https://support.sitecore.com/kb?id=kb_article_view&sysparm_article=KB0019579"
         exit
     }
     
@@ -104,7 +112,12 @@ if (-not (docker ps)) {
 }
 
 
-$composeArgs = @("compose", "-f", ".\docker-compose.yml", "-f", ".\docker-compose.override.yml")
+$composeArgs = @("compose", "-f", ".\docker-compose.yml")
+
+if(Test-Path -Path (Join-Path -Path $PSScriptRoot -ChildPath "docker-compose.override.yml")) {
+    $composeArgs += "-f"
+    $composeArgs += ".\docker-compose.override.yml"
+}
 
 if($IncludeSps) {
     $composeArgs += "-f"
@@ -124,7 +137,8 @@ if($IncludeSxa) {
 if(-not $SkipBuild) {
     Write-Host "Build Sitecore images..." -ForegroundColor Green
     $parameters = $PSBoundParameters
-    $parameters.Remove("Build") > $null
+    $parameters.Remove("SkipBuild") > $null
+    $parameters.Remove("SkipIndexing") > $null
     & (Join-Path -Path $PSScriptRoot -ChildPath "build.ps1") @parameters
 
     if ($LASTEXITCODE -ne 0) {
@@ -164,14 +178,13 @@ if ($LASTEXITCODE -ne 0) {
     Write-Error "Unexpected error installing Sitecore CLI Plugins"
 }
 
-
-Import-Module SitecoreDockerTools 3>$null
+Import-Module .\tools\DockerToolsLite
 $envPath = Join-Path -Path $PSScriptRoot -ChildPath ".env"
 $cmHost = Get-EnvFileVariable -Variable "CM_HOST" -Path $envPath
 $idHost = Get-EnvFileVariable -Variable "ID_HOST" -Path $envPath
 
 Write-Host "Logging into Sitecore..." -ForegroundColor Green
-dotnet sitecore login --cm https://$cmHost --allow-write true --auth $idHost
+dotnet sitecore login --cm https://$cmHost --allow-write true --auth https://$idHost
 
 if ($LASTEXITCODE -ne 0) {
     Write-Error "Unable to log into Sitecore, did the Sitecore environment start correctly? See logs above."
@@ -193,4 +206,4 @@ if (-not $SkipIndexing) {
 Write-Host "Good luck!" -ForegroundColor Green
 
 Write-Host "Opening site..." -ForegroundColor Green
-Start-Process https://$cmHost
+Start-Process "https://$($cmHost)/sitecore"

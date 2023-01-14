@@ -1,4 +1,5 @@
-Import-Module SitecoreDockerTools 3>$null
+Write-Host "Importing DockerToolsLite..." -ForegroundColor Green
+Import-Module .\tools\DockerToolsLite
 $envPath = Join-Path -Path $PSScriptRoot -ChildPath ".env"
 $composeProjectName = Get-EnvFileVariable -Variable "COMPOSE_PROJECT_NAME" -Path $envPath
 

@@ -8,6 +8,7 @@ The following repo provides some details about how you can get started.
 
 1. Clone this repo
 2. From an elevated prompt run the `init.ps1` with the path to the license file. An elevated prompt is only necessary for this step.
+
 ```powershell
 .\init.ps1 [-LicenseXmlPath "C:\License\license.xml"] [-HostName "dev.local"] [-SitecoreAdminPassword "Password12345"] [-SqlSaPassword "Password12345"]
 ```
@@ -15,7 +16,7 @@ The following repo provides some details about how you can get started.
 3. Build the appropriate Docker images and then start up.
 
 ```powershell
-.\up.ps1 [-IncludeSps] [-IncludeSpe] [-IncludeSxa] [-IncludePackages] [-Build]
+.\up.ps1 [-IncludeSps] [-IncludeSpe] [-IncludeSxa] [-IncludePackages] [-SkipBuild] [-SkipIndexing]
 ```
 
 4. Tear down and cleanup code changes when done.
