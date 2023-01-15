@@ -98,7 +98,7 @@ foreach($package in $packages) {
     } catch {
         $PSItem.Exception
         Write-Warning "Verify that Microsoft® SQL Server® Data-Tier Application Framework is installed."    
-        Write-Host "Tip: Use Process Monitor to identity which libraries are missing."
+        Write-Host "Tip: Use Process Monitor to identify which libraries are missing."
         Write-Host "https://support.sitecore.com/kb?id=kb_article_view&sysparm_article=KB0019579"
         exit
     }
