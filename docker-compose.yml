@@ -79,13 +79,13 @@ services:
     isolation: ${ISOLATION}
     image: ${SITECORE_DOCKER_REGISTRY}sitecore-id${ID_VERSION}:${SITECORE_VERSION}
     environment:
-      Sitecore_Sitecore__IdentityServer__SitecoreMemberShipOptions__ConnectionString: Data Source=${SQL_SERVER};Initial Catalog=Sitecore.Core;User ID=${SQL_SA_LOGIN};Password=${SQL_SA_PASSWORD}
-      Sitecore_Sitecore__IdentityServer__AccountOptions__PasswordRecoveryUrl: https://${CM_HOST}/sitecore/login?rc=1
-      Sitecore_Sitecore__IdentityServer__Clients__PasswordClient__ClientSecrets__ClientSecret1: ${SITECORE_IDSECRET}
-      Sitecore_Sitecore__IdentityServer__Clients__DefaultClient__AllowedCorsOrigins__AllowedCorsOriginsGroup1: https://${CM_HOST}
-      Sitecore_Sitecore__IdentityServer__CertificateRawData: ${SITECORE_ID_CERTIFICATE}
-      Sitecore_Sitecore__IdentityServer__PublicOrigin: https://${ID_HOST}
-      Sitecore_Sitecore__IdentityServer__CertificateRawDataPassword: ${SITECORE_ID_CERTIFICATE_PASSWORD}
+      SITECORE_SITECORE__IDENTITYSERVER__SITECOREMEMBERSHIPOPTIONS__CONNECTIONSTRING: Data Source=${SQL_SERVER};Initial Catalog=Sitecore.Core;User ID=${SQL_SA_LOGIN};Password=${SQL_SA_PASSWORD}
+      SITECORE_SITECORE__IDENTITYSERVER__ACCOUNTOPTIONS__PASSWORDRECOVERYURL: https://${CM_HOST}/sitecore/login?rc=1
+      SITECORE_SITECORE__IDENTITYSERVER__CLIENTS__PASSWORDCLIENT__CLIENTSECRETS__CLIENTSECRET1: ${SITECORE_IDSECRET}
+      SITECORE_SITECORE__IDENTITYSERVER__CLIENTS__DEFAULTCLIENT__ALLOWEDCORSORIGINS__ALLOWEDCORSORIGINSGROUP1: https://${CM_HOST}
+      SITECORE_SITECORE__IDENTITYSERVER__CERTIFICATERAWDATA: ${SITECORE_ID_CERTIFICATE}
+      SITECORE_SITECORE__IDENTITYSERVER__PUBLICORIGIN: https://${ID_HOST}
+      SITECORE_SITECORE__IDENTITYSERVER__CERTIFICATERAWDATAPASSWORD: ${SITECORE_ID_CERTIFICATE_PASSWORD}
     volumes:
       - ${SITECORE_LICENSE_PATH}:C:/Identity/sitecoreruntime:ro
     healthcheck:
@@ -114,22 +114,22 @@ services:
       id:
         condition: service_started
     environment:
-      Sitecore_AppSettings_instanceNameMode:define: default
-      Sitecore_ConnectionStrings_Core: Data Source=${SQL_SERVER};Initial Catalog=Sitecore.Core;User ID=${SQL_SA_LOGIN};Password=${SQL_SA_PASSWORD}
-      Sitecore_ConnectionStrings_Security: Data Source=${SQL_SERVER};Initial Catalog=Sitecore.Core;User ID=${SQL_SA_LOGIN};Password=${SQL_SA_PASSWORD}
-      Sitecore_ConnectionStrings_Master: Data Source=${SQL_SERVER};Initial Catalog=Sitecore.Master;User ID=${SQL_SA_LOGIN};Password=${SQL_SA_PASSWORD}
-      Sitecore_ConnectionStrings_Web: Data Source=${SQL_SERVER};Initial Catalog=Sitecore.Web;User ID=${SQL_SA_LOGIN};Password=${SQL_SA_PASSWORD}
-      Sitecore_ConnectionStrings_ExperienceForms: Data Source=${SQL_SERVER};Initial Catalog=Sitecore.ExperienceForms;User ID=${SQL_SA_LOGIN};Password=${SQL_SA_PASSWORD}
-      Sitecore_ConnectionStrings_Solr.Search: http://solr:8983/solr;solrCloud=true
-      Sitecore_ConnectionStrings_Sitecoreidentity.secret: ${SITECORE_IDSECRET}
-      Sitecore_AppSettings_Telerik.AsyncUpload.ConfigurationEncryptionKey: ${TELERIK_ENCRYPTION_KEY}
-      Sitecore_AppSettings_Telerik.Upload.ConfigurationHashKey: ${TELERIK_ENCRYPTION_KEY}
-      Sitecore_AppSettings_Telerik.Web.UI.DialogParametersEncryptionKey: ${TELERIK_ENCRYPTION_KEY}
-      Sitecore_License_Location: ${SITECORE_LICENSE_LOCATION}
-      Sitecore_Identity_Server_Authority: https://${ID_HOST}
-      Sitecore_Identity_Server_InternalAuthority: http://id
-      Sitecore_Identity_Server_CallbackAuthority: https://${CM_HOST}
-      Sitecore_Identity_Server_Require_Https: "false"
+      SITECORE_APPSETTINGS_INSTANCENAMEMODE:DEFINE: default
+      SITECORE_CONNECTIONSTRINGS_CORE: Data Source=${SQL_SERVER};Initial Catalog=Sitecore.Core;User ID=${SQL_SA_LOGIN};Password=${SQL_SA_PASSWORD}
+      SITECORE_CONNECTIONSTRINGS_SECURITY: Data Source=${SQL_SERVER};Initial Catalog=Sitecore.Core;User ID=${SQL_SA_LOGIN};Password=${SQL_SA_PASSWORD}
+      SITECORE_CONNECTIONSTRINGS_MASTER: Data Source=${SQL_SERVER};Initial Catalog=Sitecore.Master;User ID=${SQL_SA_LOGIN};Password=${SQL_SA_PASSWORD}
+      SITECORE_CONNECTIONSTRINGS_WEB: Data Source=${SQL_SERVER};Initial Catalog=Sitecore.Web;User ID=${SQL_SA_LOGIN};Password=${SQL_SA_PASSWORD}
+      SITECORE_CONNECTIONSTRINGS_EXPERIENCEFORMS: Data Source=${SQL_SERVER};Initial Catalog=Sitecore.ExperienceForms;User ID=${SQL_SA_LOGIN};Password=${SQL_SA_PASSWORD}
+      SITECORE_CONNECTIONSTRINGS_SOLR.SEARCH: http://solr:8983/solr;solrCloud=true
+      SITECORE_CONNECTIONSTRINGS_SITECOREIDENTITY.SECRET: ${SITECORE_IDSECRET}
+      SITECORE_APPSETTINGS_TELERIK.ASYNCUPLOAD.CONFIGURATIONENCRYPTIONKEY: ${TELERIK_ENCRYPTION_KEY}
+      SITECORE_APPSETTINGS_TELERIK.UPLOAD.CONFIGURATIONHASHKEY: ${TELERIK_ENCRYPTION_KEY}
+      SITECORE_APPSETTINGS_TELERIK.WEB.UI.DIALOGPARAMETERSENCRYPTIONKEY: ${TELERIK_ENCRYPTION_KEY}
+      SITECORE_LICENSE_LOCATION: ${SITECORE_LICENSE_LOCATION}
+      SITECORE_IDENTITY_SERVER_AUTHORITY: https://${ID_HOST}
+      SITECORE_IDENTITY_SERVER_INTERNALAUTHORITY: http://id
+      SITECORE_IDENTITY_SERVER_CALLBACKAUTHORITY: https://${CM_HOST}
+      SITECORE_IDENTITY_SERVER_REQUIRE_HTTPS: "false"
       SOLR_CORE_PREFIX_NAME: ${SOLR_CORE_PREFIX_NAME}
       MEDIA_REQUEST_PROTECTION_SHARED_SECRET: ${MEDIA_REQUEST_PROTECTION_SHARED_SECRET}
     volumes:

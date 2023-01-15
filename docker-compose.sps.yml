@@ -4,7 +4,7 @@ services:
       args:
         SPS_IMAGE: ${SITECORE_MODULE_REGISTRY}sitecore-sps-integration-xm1-assets:${SPS_ASSET_VERSION}
     environment:
-      Sitecore_Publishing_Service_Url: "http://sps"
+      SITECORE_PUBLISHING_SERVICE_URL: "http://sps"
   sps-init:
     isolation: ${ISOLATION}
     image: ${SITECORE_MODULE_REGISTRY}sitecore-sps:${SPS_VERSION}
