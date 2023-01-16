@@ -152,11 +152,14 @@ docker $composeArgs up -d
 Write-Host "Waiting for CM to become available..." -ForegroundColor Green
 $startTime = Get-Date
 do {
-    Start-Sleep -Milliseconds 100
+    Start-Sleep -Milliseconds 300
     try {
         $status = Invoke-RestMethod "http://localhost:8079/api/http/routers/cm-secure@docker"
     } catch {
         if ($_.Exception.Response.StatusCode.value__ -ne "404") {
+            $containers = docker ps -a --format "table {{.Names}}"
+            $container = $containers | ConvertFrom-Csv | Where-Object { $_.NAMES -match "-cm" } | Select-Object -First 1 -ExpandProperty NAMES
+            docker exec $container curl http://cm
             throw
         }
     }
