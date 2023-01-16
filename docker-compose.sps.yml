@@ -3,6 +3,7 @@ services:
     build:
       args:
         SPS_IMAGE: ${SITECORE_MODULE_REGISTRY}sitecore-sps-integration-xm1-assets:${SPS_ASSET_VERSION}
+        SPS_ASSETS_IMAGE: ${REGISTRY}${COMPOSE_PROJECT_NAME}-sps-assets:${VERSION:-latest}
     environment:
       SITECORE_PUBLISHING_SERVICE_URL: "http://sps"
   sps-init:

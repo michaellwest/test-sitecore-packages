@@ -5,6 +5,18 @@ services:
       context: ./docker/build/blank
       args:
         BASE_IMAGE: mcr.microsoft.com/windows/nanoserver:1809
+  spe-assets:
+    image: ${REGISTRY}${COMPOSE_PROJECT_NAME}-spe-assets:${VERSION:-latest}
+    build:
+      context: ./docker/build/spe-assets
+      args:
+        BASE_IMAGE: ${REGISTRY}${COMPOSE_PROJECT_NAME}-blank:${VERSION:-latest}
+  sps-assets:
+    image: ${REGISTRY}${COMPOSE_PROJECT_NAME}-sps-assets:${VERSION:-latest}
+    build:
+      context: ./docker/build/sps-assets
+      args:
+        BASE_IMAGE: ${REGISTRY}${COMPOSE_PROJECT_NAME}-blank:${VERSION:-latest} 
   mssql-init:
     image: ${REGISTRY}${COMPOSE_PROJECT_NAME}-mssql-init:${VERSION:-latest}
     build:
@@ -28,5 +40,7 @@ services:
         TOOLING_IMAGE: ${SITECORE_TOOLS_REGISTRY}sitecore-docker-tools-assets:${TOOLS_VERSION}
         MANAGEMENT_SERVICES_IMAGE: ${SITECORE_MODULE_REGISTRY}sitecore-management-services-xm1-assets:${MANAGEMENT_SERVICES_VERSION}
         SPS_IMAGE: ${REGISTRY}${COMPOSE_PROJECT_NAME}-blank:${VERSION:-latest}
+        SPS_ASSETS_IMAGE: ${REGISTRY}${COMPOSE_PROJECT_NAME}-blank:${VERSION:-latest}
         SPE_IMAGE: ${REGISTRY}${COMPOSE_PROJECT_NAME}-blank:${VERSION:-latest}
+        SPE_ASSETS_IMAGE: ${REGISTRY}${COMPOSE_PROJECT_NAME}-blank:${VERSION:-latest}
         SXA_IMAGE: ${REGISTRY}${COMPOSE_PROJECT_NAME}-blank:${VERSION:-latest}

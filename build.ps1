@@ -1,5 +1,6 @@
 [CmdletBinding()]
 param(
+    [string[]]$Services,
     [switch]$IncludeSps,
     [switch]$IncludeSpe,
     [switch]$IncludeSxa,
@@ -76,4 +77,4 @@ if($IncludeSxa) {
 }
 
 Write-Host Building
-docker $composeArgs build
+docker $composeArgs build $Services
