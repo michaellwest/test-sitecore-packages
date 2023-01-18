@@ -1,12 +1,20 @@
 services:
   blank:
     image: ${REGISTRY}${COMPOSE_PROJECT_NAME}-blank:${VERSION:-latest}
+  mssql:
+    mem_limit: 3GB
   mssql-init:
     image: ${REGISTRY}${COMPOSE_PROJECT_NAME}-mssql-init:${VERSION:-latest}
+    mem_limit: 3GB
+  solr:
+    mem_limit: 2GB
+    environment:
+      SOLR_JAVA_MEM: "-Xms1g -Xmx1g"
   solr-init:
     image: ${REGISTRY}${COMPOSE_PROJECT_NAME}-solr-init:${VERSION:-latest}
   cm:
     image: ${REGISTRY}${COMPOSE_PROJECT_NAME}-cm:${VERSION:-latest}
+    mem_limit: 3GB
     entrypoint: powershell -Command "& C:/tools/entrypoints/iis/Development.ps1"
     environment:
       SITECORE_DEVELOPMENT_PATCHES: CustomErrorsOff,DeviceDetectionOff
