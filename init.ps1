@@ -39,7 +39,7 @@ if (-not (Test-Path ".env")) {
 }
 if (-not (Test-Path "docker-compose.override.yml")) {
     Write-Host "Copying new docker-compose.override.yml" -ForegroundColor Green
-    Copy-Item ".\docker\docker-compose.override.yml" "docker-compose.override.yml"
+    Copy-Item ".\docker\docker-compose.override.yml.example" "docker-compose.override.yml"
 }
 
 ##################################
@@ -69,6 +69,7 @@ try {
     & $certz install --f devcert.pfx --p changeit --sl localmachine --sn root
 }
 catch {
+    $Error
     Write-Host "An error occurred while attempting to generate TLS certificate: $_" -ForegroundColor Red
 }
 finally {

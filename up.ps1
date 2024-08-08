@@ -173,6 +173,11 @@ if($IncludePackages) {
     & (Join-Path -Path $PSScriptRoot -ChildPath "deploy.ps1")
 }
 
+$nugetSource = dotnet nuget list source --format short | Where-Object { $_ -like "*sitecore*" }
+if(!$nugetSource) {
+    Write-Host "Adding Sitecore nuget source"
+    dotnet nuget add source -n Sitecore https://nuget.sitecore.com/resources/v3/index.json
+}
 Write-Host "Restoring Sitecore CLI..." -ForegroundColor Green
 dotnet tool restore
 Write-Host "Installing Sitecore CLI Plugins..."

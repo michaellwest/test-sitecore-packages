@@ -16,8 +16,8 @@ if(-not (Test-Path -Path $extract)) {
     New-Item -Path $extract -ItemType Directory > $null
 }
 
-Remove-Item -Path "$($content)\*" -Recurse
-Remove-Item -Path "$($db)\*" -Recurse
+Remove-Item -Path "$($content)\*" -Recurse -ErrorAction 0
+Remove-Item -Path "$($db)\*" -Recurse -ErrorAction 0
 
 if($IncludePackages) {
     $counter = 0
@@ -52,11 +52,12 @@ if($IncludePackages) {
 }
 
 $composeArgs = @("compose", "-f", ".\docker-compose.yml")
-
+<#
 if(Test-Path -Path (Join-Path -Path $PSScriptRoot -ChildPath "docker-compose.override.yml")) {
     $composeArgs += "-f"
     $composeArgs += ".\docker-compose.override.yml"
 }
+#>
 
 $composeArgs += "-f"
 $composeArgs += ".\docker-compose.build.yml"
@@ -76,5 +77,19 @@ if($IncludeSxa) {
     $composeArgs += ".\docker-compose.sxa.yml"
 }
 
-Write-Host Building
+Write-Host "Building" -ForegroundColor Green
+
+Import-Module .\tools\DockerToolsLite
+$envPath = Join-Path -Path $PSScriptRoot -ChildPath ".env"
+
+$registry = Get-EnvFileVariable -Variable "REGISTRY" -Path $envPath
+$projectName = Get-EnvFileVariable -Variable "COMPOSE_PROJECT_NAME" -Path $envPath
+$version = Get-EnvFileVariable -Variable "VERSION" -Path $envPath
+if(@{$true="latest";$false=$version}[[string]::IsNullOrEmpty($version)]) {
+    $version = "latest"
+}
+$blankImage = "$($registry)$($projectName)-blank:$($version)"
+if([string]::IsNullOrEmpty((docker images -q $blankImage))) {
+    docker $composeArgs build "blank" 
+}
 docker $composeArgs build $Services
