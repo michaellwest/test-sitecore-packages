@@ -35,7 +35,7 @@ if (-not (Test-Path $LicenseXmlPath -PathType Leaf)) {
 }
 if (-not (Test-Path ".env")) {
     Write-Host "Copying new .env" -ForegroundColor Green
-    Copy-Item ".\docker\.env" ".env"
+    Copy-Item ".\docker\.env.example" ".env"
 }
 if (-not (Test-Path "docker-compose.override.yml")) {
     Write-Host "Copying new docker-compose.override.yml" -ForegroundColor Green
