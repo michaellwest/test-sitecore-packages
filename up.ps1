@@ -5,9 +5,6 @@
     .PARAMETER SkipBuild
         Specifies that the images should not be built prior to starting up.
 
-    .PARAMETER IncludeSps
-        Species that the Sitecore Publishing Service should be included.
-
     .PARAMETER IncludeSpe
         Specifies that the Sitecore PowerShell Extensions module should be included.
 
@@ -23,7 +20,6 @@
 
 [CmdletBinding()]
 param(
-    [switch]$IncludeSps,
     [switch]$IncludeSpe,
     [switch]$IncludeSxa,
     [switch]$IncludePackages,
@@ -117,11 +113,6 @@ $composeArgs = @("compose", "-f", ".\docker-compose.yml")
 if(Test-Path -Path (Join-Path -Path $PSScriptRoot -ChildPath "docker-compose.override.yml")) {
     $composeArgs += "-f"
     $composeArgs += ".\docker-compose.override.yml"
-}
-
-if($IncludeSps) {
-    $composeArgs += "-f"
-    $composeArgs += ".\docker-compose.sps.yml"
 }
 
 if($IncludeSpe -or $IncludeSxa) {

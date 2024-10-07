@@ -1,7 +1,6 @@
 [CmdletBinding()]
 param(
     [string[]]$Services,
-    [switch]$IncludeSps,
     [switch]$IncludeSpe,
     [switch]$IncludeSxa,
     [switch]$IncludePackages
@@ -61,11 +60,6 @@ if(Test-Path -Path (Join-Path -Path $PSScriptRoot -ChildPath "docker-compose.ove
 
 $composeArgs += "-f"
 $composeArgs += ".\docker-compose.build.yml"
-
-if($IncludeSps) {
-    $composeArgs += "-f"
-    $composeArgs += ".\docker-compose.sps.yml"
-}
 
 if($IncludeSpe -or $IncludeSxa) {
     $composeArgs += "-f"

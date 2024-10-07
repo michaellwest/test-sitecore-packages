@@ -16,7 +16,7 @@ The following repo provides some details about how you can get started.
 3. Build the appropriate Docker images and then start up.
 
 ```powershell
-.\up.ps1 [-IncludeSps] [-IncludeSpe] [-IncludeSxa] [-IncludePackages] [-SkipBuild] [-SkipIndexing]
+.\up.ps1 [-IncludeSpe] [-IncludeSxa] [-IncludePackages] [-SkipBuild] [-SkipIndexing]
 ```
 
 4. Tear down and cleanup code changes when done.
