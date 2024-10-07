@@ -27,13 +27,13 @@ The following repo provides some details about how you can get started.
 
 ### Package/Code Deployment
 
-* Packages contained within `.\docker\build\releases` will be included in the built images.
-* Packages contained within `.\docker\releases` will be deployed after the containers startup.
-* Code contained within `.\deploy` will be deployed any time after containers startup. This is the best way to quickly test code changes.
+- Packages contained within `.\docker\build\releases` will be included in the built images.
+- Packages contained within `.\docker\releases` will be deployed after the containers startup.
+- Code contained within `.\deploy` will be deployed any time after containers startup. This is the best way to quickly test code changes.
 
 ## Testing
 
-* Run the script `up.ps1`
+- Run the script `up.ps1`
 
 ## Demo
 
