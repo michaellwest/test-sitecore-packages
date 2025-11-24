@@ -20,6 +20,7 @@
 
 [CmdletBinding()]
 param(
+    [switch]$SkipBuild,
     [switch]$IncludeSpe,
     [switch]$IncludeSxa,
     [switch]$IncludePackages,
@@ -42,9 +43,9 @@ if(-not (Test-Path -Path $satModuleLibrary)) {
     if(-not (Test-Path -Path $satPackage)) {
         Get-ChildItem -Path $sat -Recurse | Remove-Item -Recurse
 
-    Write-Host "Downloading $($satConfig.Filename)"
-    $webClient = New-Object System.Net.WebClient
-    $webClient.Downloadfile($satConfig.Url, $satPackage)
+        Write-Host "Downloading $($satConfig.Filename)"
+        $webClient = New-Object System.Net.WebClient
+        $webClient.Downloadfile($satConfig.Url, $satPackage)
         
         Write-Host "Unblocking $($satConfig.Filename)"
         Unblock-File -Path $satPackage
