@@ -64,11 +64,21 @@ $composeArgs += ".\docker-compose.build.yml"
 if($IncludeSpe -or $IncludeSxa) {
     $composeArgs += "-f"
     $composeArgs += ".\docker-compose.spe.yml"
+    
+    if(Test-Path -Path (Join-Path -Path $PSScriptRoot -ChildPath "docker-compose.spe.override.yml")) {
+        $composeArgs += "-f"
+        $composeArgs += ".\docker-compose.spe.override.yml"
+    }
 }
 
 if($IncludeSxa) {
     $composeArgs += "-f"
     $composeArgs += ".\docker-compose.sxa.yml"
+
+    if(Test-Path -Path (Join-Path -Path $PSScriptRoot -ChildPath "docker-compose.sxa.override.yml")) {
+        $composeArgs += "-f"
+        $composeArgs += ".\docker-compose.sxa.override.yml"
+    }
 }
 
 Write-Host "Building" -ForegroundColor Green

@@ -12,6 +12,8 @@ services:
       args:
         BASE_IMAGE: ${SITECORE_DOCKER_REGISTRY}sitecore-xm1-mssql-init:${SITECORE_VERSION}
         SPE_IMAGE: ${REGISTRY}${COMPOSE_PROJECT_NAME}-blank:${VERSION:-latest}
+    depends_on:
+      - blank
   solr-init:
     image: ${REGISTRY}${COMPOSE_PROJECT_NAME}-solr-init:${VERSION:-latest}
     build:
@@ -19,6 +21,8 @@ services:
       args:
         BASE_IMAGE: ${SITECORE_DOCKER_REGISTRY}sitecore-xm1-solr-init:${SITECORE_VERSION}
         SXA_IMAGE: ${REGISTRY}${COMPOSE_PROJECT_NAME}-blank:${VERSION:-latest}
+    depends_on:
+      - blank
   cm:
     image: ${REGISTRY}${COMPOSE_PROJECT_NAME}-cm:${VERSION:-latest}
     build:
@@ -30,3 +34,5 @@ services:
         SPE_IMAGE: ${REGISTRY}${COMPOSE_PROJECT_NAME}-blank:${VERSION:-latest}
         SPE_ASSETS_IMAGE: ${REGISTRY}${COMPOSE_PROJECT_NAME}-blank:${VERSION:-latest}
         SXA_IMAGE: ${REGISTRY}${COMPOSE_PROJECT_NAME}-blank:${VERSION:-latest}
+    depends_on:
+      - blank
