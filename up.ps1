@@ -23,8 +23,7 @@ param(
     [switch]$IncludeSpe,
     [switch]$IncludeSxa,
     [switch]$IncludePackages,
-    [switch]$SkipBuild,
-    [switch]$SkipIndexing
+    [switch]$IncludeMaintenance
 )
 
 $releases = Join-Path -Path $PSScriptRoot -ChildPath "docker\releases"
@@ -189,15 +188,16 @@ if ($LASTEXITCODE -ne 0) {
     Write-Error "Unable to log into Sitecore, did the Sitecore environment start correctly? See logs above."
 }
 
-if (-not $SkipIndexing) {
-    # Populate Solr managed schemas to avoid errors during item deploy
+if ($IncludeMaintenance) {
     Write-Host "Populating Solr managed schema..." -ForegroundColor Green
     dotnet sitecore index schema-populate
     if ($LASTEXITCODE -ne 0) {
         Write-Error "Populating Solr managed schema failed, see errors above."
     }
 
-    # Rebuild indexes
+    Write-Host "Publishing content..."
+    dotnet sitecore publish
+
     Write-Host "Rebuilding indexes ..." -ForegroundColor Green
     dotnet sitecore index rebuild
 }
