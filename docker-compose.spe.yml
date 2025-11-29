@@ -7,4 +7,3 @@ services:
     build:
       args:
         SPE_IMAGE: ${SITECORE_MODULE_REGISTRY}sitecore-spe-assets:${SPE_VERSION}
-        SPE_ASSETS_IMAGE: ${REGISTRY}${COMPOSE_PROJECT_NAME}-spe-assets:${VERSION:-latest}

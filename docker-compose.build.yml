@@ -32,7 +32,6 @@ services:
         TOOLING_IMAGE: ${SITECORE_TOOLS_REGISTRY}sitecore-docker-tools-assets:${TOOLS_VERSION}
         MANAGEMENT_SERVICES_IMAGE: ${SITECORE_MODULE_REGISTRY}sitecore-management-services-xm1-assets:${MANAGEMENT_SERVICES_VERSION}
         SPE_IMAGE: ${REGISTRY}${COMPOSE_PROJECT_NAME}-blank:${VERSION:-latest}
-        SPE_ASSETS_IMAGE: ${REGISTRY}${COMPOSE_PROJECT_NAME}-blank:${VERSION:-latest}
         SXA_IMAGE: ${REGISTRY}${COMPOSE_PROJECT_NAME}-blank:${VERSION:-latest}
     depends_on:
       - blank

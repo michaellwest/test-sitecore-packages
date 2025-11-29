@@ -6,5 +6,5 @@ ARG SPE_IMAGE
 FROM ${SPE_IMAGE} as spe
 FROM ${BASE_IMAGE}
 
-COPY --from=spe C:\module\db C:\resources\spe
+COPY --from=spe \module\db C:\resources\spe
 COPY .\db C:\resources\demo

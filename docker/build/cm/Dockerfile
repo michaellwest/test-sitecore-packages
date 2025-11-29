@@ -4,11 +4,9 @@ ARG BASE_IMAGE
 ARG TOOLING_IMAGE
 ARG MANAGEMENT_SERVICES_IMAGE
 ARG SPE_IMAGE
-ARG SPE_ASSETS_IMAGE
 ARG SXA_IMAGE
 
 FROM ${SXA_IMAGE} as sxa
-FROM ${SPE_ASSETS_IMAGE} as spe-assets
 FROM ${SPE_IMAGE} as spe
 FROM ${MANAGEMENT_SERVICES_IMAGE} as management_services
 FROM ${TOOLING_IMAGE} as tooling
@@ -28,7 +26,6 @@ COPY \tools\ \tools\
 WORKDIR /inetpub/wwwroot
 COPY --from=management_services \module\cm\content .\
 COPY --from=spe \module\cm\content .\
-COPY --from=spe-assets \module\cm\content .\
 COPY --from=sxa \module\cm\content .\
 COPY --from=sxa \module\tools \module\tools
 RUN C:\module\tools\Initialize-Content.ps1 -TargetPath .\; `
