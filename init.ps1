@@ -80,13 +80,21 @@ if([string]::IsNullOrEmpty($idHost)) {
 }
 
 # TELERIK_ENCRYPTION_KEY = random 64-128 chars
-Set-EnvFileVariable "TELERIK_ENCRYPTION_KEY" -Value (Get-RandomString 128 -DisallowSpecial)
+# Only generated once; re-running init.ps1 on an existing environment preserves the value
+# so running containers are not broken by a secret rotation.
+if ([string]::IsNullOrEmpty((Get-EnvFileVariable -Variable "TELERIK_ENCRYPTION_KEY" -Path $envPath))) {
+    Set-EnvFileVariable "TELERIK_ENCRYPTION_KEY" -Value (Get-RandomString 128 -DisallowSpecial)
+}
 
 # MEDIA_REQUEST_PROTECTION_SHARED_SECRET
-Set-EnvFileVariable "MEDIA_REQUEST_PROTECTION_SHARED_SECRET" -Value (Get-RandomString 64 -DisallowSpecial)
+if ([string]::IsNullOrEmpty((Get-EnvFileVariable -Variable "MEDIA_REQUEST_PROTECTION_SHARED_SECRET" -Path $envPath))) {
+    Set-EnvFileVariable "MEDIA_REQUEST_PROTECTION_SHARED_SECRET" -Value (Get-RandomString 64 -DisallowSpecial)
+}
 
 # SITECORE_IDSECRET = random 64 chars
-Set-EnvFileVariable "SITECORE_IDSECRET" -Value (Get-RandomString 64 -DisallowSpecial)
+if ([string]::IsNullOrEmpty((Get-EnvFileVariable -Variable "SITECORE_IDSECRET" -Path $envPath))) {
+    Set-EnvFileVariable "SITECORE_IDSECRET" -Value (Get-RandomString 64 -DisallowSpecial)
+}
 
 # SITECORE_ID_CERTIFICATE
 $certificatePath = Resolve-Path -Path ".\docker\traefik\certs\devcert.pfx"
