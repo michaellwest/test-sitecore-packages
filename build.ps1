@@ -6,7 +6,7 @@ param(
     [switch]$IncludePackages
 )
 
-$releases = Join-Path -Path $PSScriptRoot -ChildPath ".\docker\build\releases"
+$releases = Join-Path -Path $PSScriptRoot -ChildPath ".\docker\build\packages"
 $extract = Join-Path -Path $releases -ChildPath "extract"
 $content = Join-Path -Path $PSScriptRoot -ChildPath ".\docker\build\cm\content"
 $db = Join-Path -Path $PSScriptRoot -ChildPath ".\docker\build\mssql-init\db"

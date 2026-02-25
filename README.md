@@ -16,7 +16,7 @@ The following repo provides some details about how you can get started.
 3. Build the appropriate Docker images and then start up.
 
 ```powershell
-.\up.ps1 [-IncludeSpe] [-IncludeSxa] [-IncludePackages] [-SkipBuild] [-SkipIndexing]
+.\up.ps1 [-IncludeSpe] [-IncludeSxa] [-IncludePackages] [-SkipBuild] [-IncludeMaintenance]
 ```
 
 4. Tear down and cleanup code changes when done.
@@ -27,9 +27,23 @@ The following repo provides some details about how you can get started.
 
 ### Package/Code Deployment
 
-- Packages contained within `.\docker\build\releases` will be included in the built images.
-- Packages contained within `.\docker\releases` will be deployed after the containers startup.
-- Code contained within `.\deploy` will be deployed any time after containers startup. This is the best way to quickly test code changes.
+Packages and code can be delivered to the running environment in three ways depending on when you need them applied:
+
+| Location | When applied | Use case |
+|---|---|---|
+| `.\docker\build\packages\` | Baked into the image at build time | Packages that must be present before Sitecore first starts |
+| `.\docker\releases\` | Deployed by scripts when containers start | Packages to install on each fresh environment |
+| `.\docker\deploy\` | Hot-deployed via volume mount at any time | Fastest path for iterating on code changes |
+
+### Scripts
+
+| Script | Description |
+|---|---|
+| `init.ps1` | One-time setup: generates TLS certificates, populates `.env`. Run once from an elevated prompt. |
+| `up.ps1` | Builds images (unless `-SkipBuild`) and starts the environment. Optionally runs `deploy.ps1` and maintenance tasks. |
+| `build.ps1` | Builds Docker images. Called by `up.ps1` but can also be run standalone to rebuild without restarting containers. |
+| `deploy.ps1` | Installs packages from `.\docker\releases\` into running containers. Run this after containers are up whenever you add new packages to that folder. |
+| `down.ps1` | Stops containers. Use `-Cleanup` to also clear data volumes and build artifacts. |
 
 ## Testing
 

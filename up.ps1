@@ -131,7 +131,6 @@ if(-not $SkipBuild) {
     Write-Host "Build Sitecore images..." -ForegroundColor Green
     $parameters = $PSBoundParameters
     $parameters.Remove("SkipBuild") > $null
-    $parameters.Remove("SkipIndexing") > $null
     & (Join-Path -Path $PSScriptRoot -ChildPath "build.ps1") @parameters
 
     if ($LASTEXITCODE -ne 0) {
