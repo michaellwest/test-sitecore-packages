@@ -41,14 +41,15 @@ $satModuleLibrary = Join-Path -Path $sat -ChildPath "tools\Sitecore.Cloud.Cmdlet
 if(-not (Test-Path -Path $satModuleLibrary)) {
     $satPackage = Join-Path -Path $sat -ChildPath $satConfig.Filename
     if(-not (Test-Path -Path $satPackage)) {
-        Get-ChildItem -Path $sat -Recurse | Remove-Item -Recurse
-
-        Write-Host "Downloading $($satConfig.Filename)"
-        $webClient = New-Object System.Net.WebClient
-        $webClient.Downloadfile($satConfig.Url, $satPackage)
-        
-        Write-Host "Unblocking $($satConfig.Filename)"
-        Unblock-File -Path $satPackage
+        $link = "$([char]27)]8;;$($satConfig.Url)$([char]27)\$($satConfig.Url)$([char]27)]8;;$([char]27)\"
+        Write-Host ""
+        Write-Host "Sitecore Azure Toolkit package not found." -ForegroundColor Yellow
+        Write-Host "Download $($satConfig.Filename) from the Sitecore Developer Portal (login required) and place it at:" -ForegroundColor Yellow
+        Write-Host "  $satPackage" -ForegroundColor Cyan
+        Write-Host ""
+        Write-Host "  $link" -ForegroundColor Cyan
+        Write-Host ""
+        exit 1
     }
     
     Expand-Archive -Path $satPackage -DestinationPath $sat
