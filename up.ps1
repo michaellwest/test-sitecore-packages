@@ -1,6 +1,6 @@
 <#
     .SYNOPSIS
-        Spins up the containers.
+        Builds images and starts the Sitecore Docker environment.
 
     .PARAMETER SkipBuild
         Specifies that the images should not be built prior to starting up.
@@ -9,18 +9,22 @@
         Specifies that the Sitecore PowerShell Extensions module should be included.
 
     .PARAMETER IncludeSxa
-        Specifies that the Sitecore Exerience Accelerator modules should be included.
+        Specifies that the Sitecore Experience Accelerator modules should be included.
 
     .PARAMETER IncludePackages
-        Specifies that custom packages should be included during the build and/or after startup.
+        Specifies that custom packages should be deployed after the containers start.
 
-        Packages contained within .\docker\build\releases will be included in the built images.
-        Packages contained within .\docker\releases will be deployed after the containers startup.
+        Packages contained within .\docker\build\packages will be included in the built images.
+        Packages contained within .\docker\releases will be deployed after the containers start up.
 
     .PARAMETER ForceConvert
         Forces re-conversion of all module packages in .\docker\releases\ to WDP format even when
         an up-to-date .scwdp.zip already exists. By default conversion is skipped when the output
         file is newer than the source .zip.
+
+    .NOTES
+        After the environment is up, run login.ps1 to authenticate the Sitecore CLI.
+        For first-time index and publishing setup run maintenance.ps1.
 #>
 
 [CmdletBinding()]
@@ -29,7 +33,6 @@ param(
     [switch]$IncludeSpe,
     [switch]$IncludeSxa,
     [switch]$IncludePackages,
-    [switch]$IncludeMaintenance,
     [switch]$ForceConvert
 )
 
@@ -109,29 +112,28 @@ if (-not (docker ps)) {
     break
 }
 
-
 $composeArgs = @("compose", "-f", ".\docker-compose.yml")
 
-if(Test-Path -Path (Join-Path -Path $PSScriptRoot -ChildPath "docker-compose.override.yml")) {
+if (Test-Path -Path (Join-Path -Path $PSScriptRoot -ChildPath "docker-compose.override.yml")) {
     $composeArgs += "-f"
     $composeArgs += ".\docker-compose.override.yml"
 }
 
-if($IncludeSpe -or $IncludeSxa) {
+if ($IncludeSpe -or $IncludeSxa) {
     $composeArgs += "-f"
     $composeArgs += ".\docker-compose.spe.yml"
 }
 
-if($IncludeSxa) {
+if ($IncludeSxa) {
     $composeArgs += "-f"
     $composeArgs += ".\docker-compose.sxa.yml"
 }
 
-if(-not $SkipBuild) {
-    Write-Host "Build Sitecore images..." -ForegroundColor Green
-    $parameters = $PSBoundParameters
-    $parameters.Remove("SkipBuild") > $null
-    & (Join-Path -Path $PSScriptRoot -ChildPath "build.ps1") @parameters
+if (-not $SkipBuild) {
+    Write-Host "Building Sitecore images..." -ForegroundColor Green
+    $buildParams = $PSBoundParameters
+    $buildParams.Remove("SkipBuild") > $null
+    & (Join-Path -Path $PSScriptRoot -ChildPath "build.ps1") @buildParams
 
     if ($LASTEXITCODE -ne 0) {
         Write-Error "Container build failed, see errors above."
@@ -164,50 +166,11 @@ if ($status.status -ne "enabled") {
     Write-Error "Timeout waiting for Sitecore CM to become available via Traefik proxy. Check CM container logs."
 }
 
-if($IncludePackages) {
+if ($IncludePackages) {
     & (Join-Path -Path $PSScriptRoot -ChildPath "deploy.ps1")
 }
 
-$nugetSource = dotnet nuget list source --format short | Where-Object { $_ -like "*sitecore*" }
-if(!$nugetSource) {
-    Write-Host "Adding Sitecore nuget source"
-    dotnet nuget add source -n Sitecore https://nuget.sitecore.com/resources/v3/index.json
-}
-Write-Host "Restoring Sitecore CLI..." -ForegroundColor Green
-dotnet tool restore
-Write-Host "Installing Sitecore CLI Plugins..."
-dotnet sitecore --help | Out-Null
-if ($LASTEXITCODE -ne 0) {
-    Write-Error "Unexpected error installing Sitecore CLI Plugins"
-}
-
-Import-Module .\tools\DockerToolsLite
-$envPath = Join-Path -Path $PSScriptRoot -ChildPath ".env"
-$cmHost = Get-EnvFileVariable -Variable "CM_HOST" -Path $envPath
-$idHost = Get-EnvFileVariable -Variable "ID_HOST" -Path $envPath
-
-Write-Host "Logging into Sitecore..." -ForegroundColor Green
-dotnet sitecore login --cm https://$cmHost --allow-write true --auth https://$idHost
-
-if ($LASTEXITCODE -ne 0) {
-    Write-Error "Unable to log into Sitecore, did the Sitecore environment start correctly? See logs above."
-}
-
-if ($IncludeMaintenance) {
-    Write-Host "Populating Solr managed schema..." -ForegroundColor Green
-    dotnet sitecore index schema-populate
-    if ($LASTEXITCODE -ne 0) {
-        Write-Error "Populating Solr managed schema failed, see errors above."
-    }
-
-    Write-Host "Publishing content..."
-    dotnet sitecore publish
-
-    Write-Host "Rebuilding indexes ..." -ForegroundColor Green
-    dotnet sitecore index rebuild
-}
-
-Write-Host "Good luck!" -ForegroundColor Green
-
-Write-Host "Opening site..." -ForegroundColor Green
-Start-Process "https://$($cmHost)/sitecore"
+Write-Host ""
+Write-Host "Environment is up. Next steps:" -ForegroundColor Green
+Write-Host "  .\login.ps1        - Authenticate the Sitecore CLI" -ForegroundColor Cyan
+Write-Host "  .\maintenance.ps1  - Populate Solr schema, publish content, rebuild indexes" -ForegroundColor Cyan
