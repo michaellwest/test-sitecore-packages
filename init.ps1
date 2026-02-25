@@ -97,12 +97,12 @@ if ([string]::IsNullOrEmpty((Get-EnvFileVariable -Variable "SITECORE_IDSECRET" -
 }
 
 # SITECORE_ID_CERTIFICATE
-$certificatePath = Resolve-Path -Path ".\docker\traefik\certs\devcert.pfx"
+# Read the PFX bytes directly so the password remains consistent with devcert.password.txt.
+# The previous approach re-exported via X509Certificate2 with an undefined $Password variable,
+# producing a password-less PFX that never matched SITECORE_ID_CERTIFICATE_PASSWORD.
+$certificatePath  = Resolve-Path -Path ".\docker\traefik\certs\devcert.pfx"
 $certificatePassword = Get-Content -Path (Resolve-Path -Path ".\docker\traefik\certs\devcert.password.txt") -Raw
-$certificate = New-Object System.Security.Cryptography.X509Certificates.X509Certificate2 -ArgumentList $certificatePath, $certificatePassword, ([System.Security.Cryptography.X509Certificates.X509KeyStorageFlags]::Exportable -bor [System.Security.Cryptography.X509Certificates.X509KeyStorageFlags]::PersistKeySet)
-$certificateBytes = $certificate.Export([System.Security.Cryptography.X509Certificates.X509ContentType]::Pfx, $Password)
-$certificateBase64String = [System.Convert]::ToBase64String($certificateBytes)
-Set-EnvFileVariable "SITECORE_ID_CERTIFICATE" -Value $certificateBase64String
+Set-EnvFileVariable "SITECORE_ID_CERTIFICATE" -Value ([Convert]::ToBase64String([IO.File]::ReadAllBytes($certificatePath)))
 
 # SITECORE_ID_CERTIFICATE_PASSWORD
 Set-EnvFileVariable "SITECORE_ID_CERTIFICATE_PASSWORD" -Value $certificatePassword
