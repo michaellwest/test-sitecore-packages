@@ -16,6 +16,11 @@
 
         Packages contained within .\docker\build\releases will be included in the built images.
         Packages contained within .\docker\releases will be deployed after the containers startup.
+
+    .PARAMETER ForceConvert
+        Forces re-conversion of all module packages in .\docker\releases\ to WDP format even when
+        an up-to-date .scwdp.zip already exists. By default conversion is skipped when the output
+        file is newer than the source .zip.
 #>
 
 [CmdletBinding()]
@@ -24,85 +29,79 @@ param(
     [switch]$IncludeSpe,
     [switch]$IncludeSxa,
     [switch]$IncludePackages,
-    [switch]$IncludeMaintenance
+    [switch]$IncludeMaintenance,
+    [switch]$ForceConvert
 )
 
 $releases = Join-Path -Path $PSScriptRoot -ChildPath "docker\releases"
-
-$sat = Join-Path -Path $releases -ChildPath "sat"
-if(-not (Test-Path -Path $sat)) {
-    New-Item -Path $sat -ItemType Directory > $null
-}
-
-$satConfig = Get-ChildItem -Path $releases -Filter "configuration.json" | 
-    Get-Content | ConvertFrom-Json | Select-Object -ExpandProperty "SitecoreAzureToolkit"
-
-$satModuleLibrary = Join-Path -Path $sat -ChildPath "tools\Sitecore.Cloud.Cmdlets.dll"
-if(-not (Test-Path -Path $satModuleLibrary)) {
-    $satPackage = Join-Path -Path $sat -ChildPath $satConfig.Filename
-    if(-not (Test-Path -Path $satPackage)) {
-        $link = "$([char]27)]8;;$($satConfig.Url)$([char]27)\$($satConfig.Url)$([char]27)]8;;$([char]27)\"
-        Write-Host ""
-        Write-Host "Sitecore Azure Toolkit package not found." -ForegroundColor Yellow
-        Write-Host "Download $($satConfig.Filename) from the Sitecore Developer Portal (login required) and place it at:" -ForegroundColor Yellow
-        Write-Host "  $satPackage" -ForegroundColor Cyan
-        Write-Host ""
-        Write-Host "  $link" -ForegroundColor Cyan
-        Write-Host ""
-        exit 1
-    }
-    
-    Expand-Archive -Path $satPackage -DestinationPath $sat
-}
-Import-Module -Name (Join-Path -Path $sat -ChildPath "tools\Sitecore.Cloud.Cmdlets.dll")
-
-$packages = Get-ChildItem -Path $releases -Filter "*.zip" | 
-    Where-Object { $_.Extension -ne ".scwdp.zip" } | 
-    Select-Object -ExpandProperty FullName
-
 $destination = "$($releases)\"
 
 Add-Type -AssemblyName "System.IO.Compression"
 Add-Type -AssemblyName "System.IO.Compression.FileSystem"
 function Test-ValidModulePackage {
-    param(
-        [string]$Path
-    )
-
-    $isModulePackage = $false
+    param([string]$Path)
     $zip = [System.IO.Compression.ZipFile]::Open($Path, [System.IO.Compression.ZipArchiveMode]::Read)
-    $packageZipEntry = $zip.Entries | Where-Object { $_.Name -eq "package.zip" }
-
-    if($packageZipEntry) {
-        $isModulePackage = $true
-    }
+    $isModule = $null -ne ($zip.Entries | Where-Object { $_.Name -eq "package.zip" })
     $zip.Dispose()
-
-    $isModulePackage
+    $isModule
 }
 
-foreach($package in $packages) {
-    if (-not (Test-ValidModulePackage -Path $package)) {
-        continue
+# Identify which .zip packages in docker\releases actually need WDP conversion.
+# Conversion is skipped when a .scwdp.zip already exists and is at least as new
+# as the source .zip.  Use -ForceConvert to override this check.
+$packagesToConvert = Get-ChildItem -Path $releases -Filter "*.zip" |
+    Where-Object { $_.Extension -ne ".scwdp.zip" } |
+    Where-Object { Test-ValidModulePackage -Path $_.FullName } |
+    Where-Object {
+        $wdp = Join-Path $destination "$($_.BaseName).scwdp.zip"
+        if (-not $ForceConvert -and (Test-Path $wdp) -and (Get-Item $wdp).LastWriteTime -ge $_.LastWriteTime) {
+            Write-Host "Skipping $($_.BaseName) - up-to-date .scwdp.zip exists (use -ForceConvert to rebuild)" -ForegroundColor DarkGray
+            return $false
+        }
+        return $true
     }
 
-    $packageName = [System.IO.Path]::GetFileNameWithoutExtension($package)    
-    Write-Host "Converting $($packageName)"
-    try {
-        $convertedFilename = Join-Path -Path $destination -ChildPath "$($packageName).scwdp.zip"
-        if (Test-Path -Path $convertedFilename) {
-            Remove-Item -Path $convertedFilename
-        }
-        $wdpPath = ConvertTo-SCModuleWebDeployPackage -Path $package  -Destination $destination #-DisableDacPacOptions * -Force
-    } catch {
-        $PSItem.Exception
-        Write-Warning "Verify that Microsoft® SQL Server® Data-Tier Application Framework is installed."    
-        Write-Host "Tip: Use Process Monitor to identify which libraries are missing."
-        Write-Host "https://support.sitecore.com/kb?id=kb_article_view&sysparm_article=KB0019579"
-        exit
+if ($packagesToConvert.Count -gt 0) {
+    # SAT is only required when at least one package needs converting.
+    $sat = Join-Path -Path $releases -ChildPath "sat"
+    if (-not (Test-Path -Path $sat)) {
+        New-Item -Path $sat -ItemType Directory > $null
     }
-    
-    Write-Host ""
+
+    $satConfig = Get-ChildItem -Path $releases -Filter "configuration.json" |
+        Get-Content | ConvertFrom-Json | Select-Object -ExpandProperty "SitecoreAzureToolkit"
+
+    $satModuleLibrary = Join-Path -Path $sat -ChildPath "tools\Sitecore.Cloud.Cmdlets.dll"
+    if (-not (Test-Path -Path $satModuleLibrary)) {
+        $satPackage = Join-Path -Path $sat -ChildPath $satConfig.Filename
+        if (-not (Test-Path -Path $satPackage)) {
+            $link = "$([char]27)]8;;$($satConfig.Url)$([char]27)\$($satConfig.Url)$([char]27)]8;;$([char]27)\"
+            Write-Host ""
+            Write-Host "Sitecore Azure Toolkit package not found." -ForegroundColor Yellow
+            Write-Host "Download $($satConfig.Filename) from the Sitecore Developer Portal (login required) and place it at:" -ForegroundColor Yellow
+            Write-Host "  $satPackage" -ForegroundColor Cyan
+            Write-Host ""
+            Write-Host "  $link" -ForegroundColor Cyan
+            Write-Host ""
+            exit 1
+        }
+        Expand-Archive -Path $satPackage -DestinationPath $sat
+    }
+    Import-Module -Name (Join-Path -Path $sat -ChildPath "tools\Sitecore.Cloud.Cmdlets.dll")
+
+    foreach ($package in $packagesToConvert) {
+        Write-Host "Converting $($package.BaseName)..." -ForegroundColor Green
+        try {
+            ConvertTo-SCModuleWebDeployPackage -Path $package.FullName -Destination $destination | Out-Null
+        } catch {
+            $PSItem.Exception
+            Write-Warning "Verify that Microsoft® SQL Server® Data-Tier Application Framework is installed."
+            Write-Host "Tip: Use Process Monitor to identify which libraries are missing."
+            Write-Host "https://support.sitecore.com/kb?id=kb_article_view&sysparm_article=KB0019579"
+            exit
+        }
+        Write-Host ""
+    }
 }
 
 if (-not (docker ps)) {
