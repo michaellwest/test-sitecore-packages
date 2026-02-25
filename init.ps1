@@ -97,7 +97,7 @@ $certificateBase64String = [System.Convert]::ToBase64String($certificateBytes)
 Set-EnvFileVariable "SITECORE_ID_CERTIFICATE" -Value $certificateBase64String
 
 # SITECORE_ID_CERTIFICATE_PASSWORD
-Set-EnvFileVariable "SITECORE_ID_CERTIFICATE_PASSWORD" -Value $idCertPassword
+Set-EnvFileVariable "SITECORE_ID_CERTIFICATE_PASSWORD" -Value $certificatePassword
 
 # SITECORE_LICENSE_LOCATION and SITECORE_LICENSE_PATH
 $licensePath = Get-EnvFileVariable -Variable "SITECORE_LICENSE_LOCATION" -Path $envPath
