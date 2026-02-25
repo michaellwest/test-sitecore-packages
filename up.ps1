@@ -142,10 +142,13 @@ if(-not $SkipBuild) {
 Write-Host "Starting Sitecore environment..." -ForegroundColor Green
 docker $composeArgs up -d
 
-Write-Host "Waiting for CM to become available..." -ForegroundColor Green
+Write-Host "Waiting for CM to become available (this typically takes 5-10 minutes)..." -ForegroundColor Green
 $startTime = Get-Date
+$timeoutSeconds = 600
 do {
-    Start-Sleep -Milliseconds 300
+    Start-Sleep -Seconds 5
+    $elapsed = [int]((Get-Date) - $startTime).TotalSeconds
+    Write-Host "  [$($elapsed)s / $($timeoutSeconds)s] Waiting for CM..." -ForegroundColor DarkGray
     try {
         $status = Invoke-RestMethod "http://localhost:8079/api/http/routers/cm-secure@docker"
     } catch {
@@ -156,8 +159,8 @@ do {
             throw
         }
     }
-} while ($status.status -ne "enabled" -and $startTime.AddSeconds(15) -gt (Get-Date))
-if (-not $status.status -eq "enabled") {
+} while ($status.status -ne "enabled" -and $startTime.AddSeconds($timeoutSeconds) -gt (Get-Date))
+if ($status.status -ne "enabled") {
     $status
     Write-Error "Timeout waiting for Sitecore CM to become available via Traefik proxy. Check CM container logs."
 }
