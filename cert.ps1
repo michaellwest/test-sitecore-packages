@@ -27,15 +27,15 @@
         re-uses the original validity window unless the tool overrides it). Defaults to 1825 (5 years).
 
     .EXAMPLE
-        .\New-DevCert.ps1
+        .\cert.ps1
         Creates a new certificate for *.dev.local and installs it.
 
     .EXAMPLE
-        .\New-DevCert.ps1 -Renew
+        .\cert.ps1 -Renew
         Renews the existing certificate and re-installs it.
 
     .EXAMPLE
-        .\New-DevCert.ps1 -HostName "myproject.local" -Days 365
+        .\cert.ps1 -HostName "myproject.local" -Days 365
         Creates a one-year certificate scoped to *.myproject.local.
 
     .NOTES
@@ -55,7 +55,7 @@ Param (
 
     [string]$CertDir = (Join-Path $PSScriptRoot "docker\traefik\certs"),
 
-    [int]$Days = 1825
+    [int]$Days = 200
 )
 
 $ErrorActionPreference = "Stop"
@@ -84,6 +84,15 @@ try {
         Write-Host "Using certz found in PATH." -ForegroundColor Cyan
     } elseif (Test-Path $certz) {
         Write-Host "Using certz found in $CertDir." -ForegroundColor Cyan
+
+        try {
+            $latest = (Invoke-RestMethod "https://api.github.com/repos/michaellwest/certz/releases/latest" -TimeoutSec 5).tag_name
+            if ($latest -and $latest -ne $CertzVersion) {
+                Write-Host "INFO: certz $latest is available (pinned to $CertzVersion). Update CertzVersion/CertzHash in cert.ps1 to upgrade." -ForegroundColor Yellow
+            }
+        } catch {
+            Write-Host "Could not check for certz updates: $_" -ForegroundColor DarkGray
+        }
     } else {
         Write-Host "Downloading certz $CertzVersion..." -ForegroundColor Green
         $webClient = New-Object System.Net.WebClient
@@ -102,15 +111,16 @@ try {
     ###########################################################################
     if ($Renew) {
         Write-Host "Renewing Traefik TLS certificate..." -ForegroundColor Green
-        & $certz renew --f $PfxFile --password-file $PasswordFile --days $Days
+        $pfxPassword = (Get-Content $PasswordFile -Raw).Trim()
+        & $certz renew $PfxFile --password $pfxPassword --days $Days --out $PfxFile
     } else {
         Write-Host "Generating Traefik TLS certificate for *.$HostName..." -ForegroundColor Green
         & $certz create `
-            --f $PfxFile `
+            --file $PfxFile `
             --san "*.$HostName" "localhost" `
             --password-file $PasswordFile `
-            --c $CerFile `
-            --k $KeyFile `
+            --cert $CerFile `
+            --key $KeyFile `
             --days $Days
     }
 
@@ -122,10 +132,11 @@ try {
     # Install into Local Machine Trusted Root store
     ###########################################################################
     Write-Host "Installing certificate into Local Machine Trusted Root store..." -ForegroundColor Green
-    & $certz install --f $PfxFile --password-file $PasswordFile --sl localmachine --sn root
+    $pfxPassword = (Get-Content $PasswordFile -Raw).Trim()
+    & $certz trust add $PfxFile --password $pfxPassword --store Root --location LocalMachine
 
     if ($LASTEXITCODE -ne 0) {
-        throw "certz install exited with code $LASTEXITCODE"
+        throw "certz trust add exited with code $LASTEXITCODE"
     }
 
     Write-Host "Certificate operation complete." -ForegroundColor Green
